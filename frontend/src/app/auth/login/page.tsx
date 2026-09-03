@@ -15,14 +15,14 @@ function AuthContent() {
   const [activeTab, setActiveTab] = useState<'LOGIN' | 'SIGNUP'>(initialTab);
 
   // Login form state
-  const [loginPhone, setLoginPhone] = useState('+91 94470 54321');
-  const [loginPassword, setLoginPassword] = useState('password123');
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
 
   // Signup form state
-  const [signupName, setSignupName] = useState('Abhay P');
-  const [signupPhone, setSignupPhone] = useState('+91 94470 54321');
+  const [signupName, setSignupName] = useState('');
+  const [signupPhone, setSignupPhone] = useState('');
   const [signupCity, setSignupCity] = useState<'Kochi' | 'Palakkad' | 'Malappuram' | 'Thrissur'>('Kochi');
-  const [signupAddress, setSignupAddress] = useState('Edappally Toll, Kochi, Kerala');
+  const [signupAddress, setSignupAddress] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,8 +35,8 @@ function AuthContent() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      login(loginPhone, 'Abhay P', 'Kochi');
-      toast.success('Welcome back, Abhay P!');
+      login(loginPhone);
+      toast.success('Welcome back! Successfully logged in.');
       router.push('/seller/new-listing');
     }, 500);
   };
