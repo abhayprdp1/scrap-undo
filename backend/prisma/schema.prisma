@@ -1,0 +1,220 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SELLER
+  DEALER
+  ADMIN
+}
+
+enum ListingStatus {
+  DRAFT
+  DETECTING
+  PRICED
+  BOOKED
+  COLLECTED
+  CANCELLED
+}
+
+enum BookingStatus {
+  REQUESTED
+  ACCEPTED
+  REJECTED
+  EN_ROUTE
+  COLLECTED
+  PAID
+  CANCELLED
+  DISPUTED
+}
+
+enum KycStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum RateSource {
+  MANUAL
+  DEALER_AVG
+  MARKET_FEED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  phone     String   @unique
+  role      Role     @default(SELLER)
+  address   String?
+  geoLat    Float?
+  geoLng    Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dealer    Dealer?
+  listings  Listing[]
+  bookingsAsSeller Booking[] @relation("SellerBookings")
+  ratingsGiven     Rating[]  @relation("RatingsGiven")
+  ratingsReceived  Rating[]  @relation("RatingsReceived")
+  otps      Otp[]
+
+  @@map("users")
+}
+
+model Dealer {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  shopName        String
+  categories      String[]  // e.g. ["Electronics", "Metal", "Paper"]
+  serviceRadiusKm Float     @default(10)
+  geoLat          Float
+  geoLng          Float
+  kycStatus       KycStatus @default(PENDING)
+  kycDocs         String[]  // S3 URLs
+  ratingAvg       Float     @default(0)
+  totalRatings    Int       @default(0)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings        Booking[] @relation("DealerBookings")
+
+  @@map("dealers")
+}
+
+model Listing {
+  id            String        @id @default(cuid())
+  sellerId      String
+  images        String[]      // S3 URLs
+  detectedItems Json?         // raw AI output
+  status        ListingStatus @default(DRAFT)
+  geoLat        Float
+  geoLng        Float
+  address       String
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  seller        User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  items         ListingItem[]
+  booking       Booking?
+
+  @@map("listings")
+}
+
+model ListingItem {
+  id             String  @id @default(cuid())
+  listingId      String
+  category       String
+  subcategory    String
+  estQty         Float?
+  unit           String  @default("kg") // kg or piece
+  priceMin       Float
+  priceMax       Float
+  confidenceScore Float?
+  condition      String? // working/non-working/clean/damaged
+  userConfirmed  Boolean @default(false)
+
+  listing        Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@map("listing_items")
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  listingId   String        @unique
+  dealerId    String
+  sellerId    String
+  status      BookingStatus @default(REQUESTED)
+  slotStart   DateTime
+  slotEnd     DateTime
+  otpCode     String?
+  otpVerified Boolean       @default(false)
+  finalAmount Float?
+  paymentMode String        @default("CASH")
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  listing     Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  dealer      Dealer        @relation("DealerBookings", fields: [dealerId], references: [id])
+  seller      User          @relation("SellerBookings", fields: [sellerId], references: [id])
+  transaction Transaction?
+  ratings     Rating[]
+
+  @@map("bookings")
+}
+
+model Transaction {
+  id               String   @id @default(cuid())
+  bookingId        String   @unique
+  amount           Float
+  mode             String   @default("CASH")
+  collectedAt      DateTime?
+  sellerConfirmed  Boolean  @default(false)
+  dealerConfirmed  Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  booking          Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model Rating {
+  id          String   @id @default(cuid())
+  bookingId   String
+  ratedBy     String
+  ratedUserId String
+  stars       Int      // 1-5
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  rater       User     @relation("RatingsGiven", fields: [ratedBy], references: [id])
+  rated       User     @relation("RatingsReceived", fields: [ratedUserId], references: [id])
+
+  @@unique([bookingId, ratedBy])
+  @@map("ratings")
+}
+
+model ScrapRateCard {
+  id            String     @id @default(cuid())
+  category      String
+  subcategory   String
+  cityZone      String     // e.g. "Mumbai", "Delhi", "Bangalore"
+  unit          String     @default("kg") // kg or piece
+  minRate       Float
+  maxRate       Float
+  effectiveFrom DateTime   @default(now())
+  effectiveTo   DateTime?
+  source        RateSource @default(MANUAL)
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@unique([category, subcategory, cityZone])
+  @@map("scrap_rate_cards")
+}
+
+model Otp {
+  id        String   @id @default(cuid())
+  userId    String
+  phone     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("otps")
+}
