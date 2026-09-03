@@ -722,7 +722,7 @@ export default function SellScrapPage() {
             </div>
             <h2 className="text-2xl font-extrabold text-white">Choose Collection Date & Time</h2>
             <p className="text-xs text-scrap-muted">
-              {selectedShop.shopName} ({selectedShop.realDistanceKm} km away) will arrive at your address with a certified digital weighing scale and pay cash.
+              {selectedShop.shopName} ({selectedShop.realDistanceKm ?? selectedShop.distanceKm} km away) will arrive at your address with a certified digital weighing scale and pay cash.
             </p>
           </ScrollReveal>
 
@@ -806,7 +806,7 @@ export default function SellScrapPage() {
                 <div>
                   <span className="text-scrap-muted block">Selected Scrap Shop:</span>
                   <p className="font-bold text-white text-sm">{selectedShop.shopName}</p>
-                  <p className="text-scrap-muted">{selectedShop.address} ({selectedShop.realDistanceKm} km away)</p>
+                  <p className="text-scrap-muted">{selectedShop.address} ({selectedShop.realDistanceKm ?? selectedShop.distanceKm} km away)</p>
                 </div>
 
                 <div>

@@ -60,6 +60,7 @@ export interface ScrapShop {
   totalRatings: number;
   serviceRadiusKm: number;
   distanceKm: number;
+  realDistanceKm?: number;
   lat: number;
   lng: number;
   address: string;
