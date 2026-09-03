@@ -108,6 +108,36 @@ export default function SellScrapPage() {
   // Quick photo samples for instant testing
   const quickPresets = [
     {
+      id: 'sample-laptop',
+      title: 'Dead Laptop / PC',
+      emoji: '💻',
+      badge: 'High Value E-Waste',
+      items: [
+        {
+          id: 'lap-1',
+          name: 'Dead Laptop / Notebook PC (Motherboard + Screen)',
+          category: 'Electronics',
+          qty: 1,
+          unit: 'piece',
+          minRate: 850,
+          maxRate: 2400,
+          condition: 'Motherboard + screen salvage / battery intact',
+          confidence: 0.95,
+        },
+        {
+          id: 'lap-2',
+          name: 'Laptop Charger & Lithium Battery',
+          category: 'Electronics',
+          qty: 1,
+          unit: 'piece',
+          minRate: 150,
+          maxRate: 350,
+          condition: 'Original accessories',
+          confidence: 0.91,
+        },
+      ],
+    },
+    {
       id: 'sample-tv',
       title: 'Old Television (TV)',
       emoji: '📺',
@@ -115,13 +145,13 @@ export default function SellScrapPage() {
       items: [
         {
           id: 'tv-1',
-          name: 'Old CRT Television',
+          name: 'Old CRT / LED Television',
           category: 'Electronics',
           qty: 1,
           unit: 'piece',
           minRate: 250,
           maxRate: 550,
-          condition: 'Non-working / heavy glass tube',
+          condition: 'Non-working / intact tube',
           confidence: 0.94,
         },
         {
@@ -199,6 +229,67 @@ export default function SellScrapPage() {
     },
   ];
 
+  // Helper to intelligently classify uploaded scrap based on image / file name
+  const classifyImage = (fileName: string) => {
+    const fn = fileName.toLowerCase();
+    
+    // Laptop / Computer / PC
+    if (
+      fn.includes('lap') ||
+      fn.includes('pc') ||
+      fn.includes('computer') ||
+      fn.includes('mac') ||
+      fn.includes('dell') ||
+      fn.includes('hp') ||
+      fn.includes('lenovo') ||
+      fn.includes('asus') ||
+      fn.includes('thinkpad') ||
+      fn.includes('notebook')
+    ) {
+      return {
+        detectedName: 'Dead Laptop / PC (Computer)',
+        items: quickPresets[0].items,
+      };
+    }
+
+    // Newspaper / Paper / Cartons
+    if (
+      fn.includes('paper') ||
+      fn.includes('news') ||
+      fn.includes('pathram') ||
+      fn.includes('book') ||
+      fn.includes('carton') ||
+      fn.includes('box')
+    ) {
+      return {
+        detectedName: 'Newspapers & Cartons (Pathram)',
+        items: quickPresets[2].items,
+      };
+    }
+
+    // Copper / Metal
+    if (
+      fn.includes('copper') ||
+      fn.includes('wire') ||
+      fn.includes('metal') ||
+      fn.includes('brass') ||
+      fn.includes('iron') ||
+      fn.includes('aluminium') ||
+      fn.includes('steel')
+    ) {
+      return {
+        detectedName: 'Copper Wires & Metals',
+        items: quickPresets[3].items,
+      };
+    }
+
+    // Default to TV
+    return {
+      detectedName: 'Television (TV)',
+      items: quickPresets[1].items,
+    };
+  };
+
   // Dynamically calculate distance and sort scrap shops nearest first
   const nearbyShops = useMemo(() => {
     let list = DEMO_DEALERS.map((shop) => {
@@ -253,14 +344,17 @@ export default function SellScrapPage() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setUploadedImage(URL.createObjectURL(file));
-      setPhotoName(file.name);
+      
+      const classification = classifyImage(file.name);
+      setPhotoName(classification.detectedName);
+      setScrapItems(classification.items);
       
       // AI Valuation Simulation
-      toast.loading('Analyzing image with Gemini Vision AI...', { id: 'scan' });
+      toast.loading(`Analyzing image with Gemini Vision AI...`, { id: 'scan' });
       setTimeout(() => {
-        toast.success('Scrap detected & priced based on Kerala rate card!', { id: 'scan' });
+        toast.success(`Identified as ${classification.detectedName}!`, { id: 'scan' });
         setStep(2);
-      }, 1000);
+      }, 900);
     }
   };
 
@@ -340,7 +434,7 @@ export default function SellScrapPage() {
             </div>
             <h1 className="text-3xl font-extrabold text-white">Upload a Photo of Your Scrap</h1>
             <p className="text-xs text-scrap-muted">
-              Photograph any scrap items in your home or office (Old TV, Newspaper, Copper, Cartons, Plastic, Laptop). Our AI will instantly calculate the market value.
+              Photograph any scrap items in your home or office (Dead Laptop, Old TV, Newspaper, Copper, Cartons, Plastic). Our AI will instantly calculate the market value.
             </p>
           </ScrollReveal>
 
@@ -390,7 +484,7 @@ export default function SellScrapPage() {
               <span className="text-xs text-scrap-muted">Based on Kerala rates</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {quickPresets.map((preset, idx) => (
                 <ScrollReveal
                   key={preset.id}
@@ -442,6 +536,42 @@ export default function SellScrapPage() {
               <span className="text-2xl font-black text-scrap-gold">₹{totalValuation.min} – ₹{totalValuation.max}</span>
             </div>
           </ScrollReveal>
+
+          {/* Quick Item Category Switcher */}
+          <div className="p-4 rounded-2xl bg-scrap-bg border border-scrap-border space-y-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <span className="text-xs text-scrap-light font-medium">
+                Current Scrap Item: <span className="text-scrap-primary font-bold">{photoName || 'Detected Scrap'}</span>
+              </span>
+              <span className="text-[11px] text-scrap-gold font-semibold">
+                Wrong item detected? Switch in 1 click:
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {quickPresets.map((p) => {
+                const isActive = photoName === p.title || (p.title.includes('Laptop') && scrapItems[0]?.name.includes('Laptop'));
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      setPhotoName(p.title);
+                      setScrapItems(p.items);
+                      toast.success(`Switched valuation to ${p.title}!`);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 active:scale-95 ${
+                      isActive
+                        ? 'bg-scrap-primary text-black border-scrap-primary shadow-glow'
+                        : 'bg-scrap-card hover:bg-scrap-cardHover text-scrap-light hover:text-white border-scrap-border'
+                    }`}
+                  >
+                    <span>{p.emoji}</span>
+                    <span>{p.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {/* List of items detected with Scroll Reveal */}
           <div className="space-y-3">
