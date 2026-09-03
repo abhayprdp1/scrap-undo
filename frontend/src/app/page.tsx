@@ -37,34 +37,27 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen gradient-mesh">
       
-      {/* Top Ticker: Live Kerala Scrap Rates - Continuous Smooth Moving Marquee */}
-      <div className="w-full bg-scrap-card/95 border-b border-scrap-border py-2 px-4 overflow-hidden flex items-center justify-between text-xs relative">
-        <div className="z-10 flex items-center gap-2 pr-4 bg-scrap-card/95 border-r border-scrap-border whitespace-nowrap flex-shrink-0 shadow-md">
-          <span className="w-2 h-2 rounded-full bg-scrap-primary animate-ping" />
-          <span className="font-bold text-scrap-primary uppercase tracking-wider text-[11px]">Kerala Daily Scrap Rates</span>
-          <span className="text-scrap-muted font-normal text-[11px]">({selectedCity})</span>
-        </div>
-        
-        {/* Continuous moving ticker stream */}
-        <div className="flex-1 overflow-hidden mx-4 relative">
-          <div className="animate-ticker flex items-center gap-8 whitespace-nowrap">
-            {/* Render items duplicated to create seamless infinite loop */}
-            {[...liveRatesKerala, ...liveRatesKerala].map((r, i) => (
-              <div key={i} className="flex items-center gap-2 text-scrap-light text-xs">
-                <span className="text-scrap-muted font-medium">{r.item}:</span>
-                <span className="font-extrabold text-white">{r.rate}/{r.unit}</span>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${r.trend.startsWith('+') ? 'bg-scrap-primary/15 text-scrap-primary' : 'bg-scrap-gold/15 text-scrap-gold'}`}>
-                  {r.trend}
-                </span>
-                <span className="text-scrap-border mx-2">•</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Top Ticker: Live Kerala Scrap Rates - Unobstructed Smooth Moving Marquee */}
+      <div className="w-full bg-[#0c1015] border-b border-scrap-border/70 py-2.5 overflow-hidden relative group">
+        {/* Soft edge fade masks so text glides in and out smoothly without getting chopped */}
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#0c1015] to-transparent z-10" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0c1015] to-transparent z-10" />
 
-        <Link href="/rates" className="z-10 hidden md:flex items-center gap-1.5 text-scrap-primary hover:underline whitespace-nowrap pl-4 pr-1 text-[11px] font-bold flex-shrink-0 bg-scrap-card/95 border-l border-scrap-border">
-          Full Rate Card <ArrowRight className="w-3 h-3" />
-        </Link>
+        {/* Continuous moving ticker stream */}
+        <div className="animate-ticker flex items-center whitespace-nowrap">
+          {/* Render items duplicated 3 times for a completely seamless, continuous loop */}
+          {[...liveRatesKerala, ...liveRatesKerala, ...liveRatesKerala].map((r, i) => (
+            <div key={i} className="inline-flex items-center gap-2.5 mx-6 text-xs">
+              <span className="w-2 h-2 rounded-full bg-scrap-primary animate-pulse" />
+              <span className="text-scrap-muted font-medium">{r.item}:</span>
+              <span className="font-extrabold text-white text-sm">{r.rate}/{r.unit}</span>
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${r.trend.startsWith('+') ? 'bg-scrap-primary/15 text-scrap-primary' : 'bg-scrap-gold/15 text-scrap-gold'}`}>
+                {r.trend}
+              </span>
+              <span className="text-scrap-border/60 ml-2">•</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Hero Section */}
