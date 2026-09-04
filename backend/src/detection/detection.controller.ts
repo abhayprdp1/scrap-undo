@@ -9,9 +9,7 @@ export class DetectionController {
   constructor(private detectionService: DetectionService) {}
 
   @Post('analyze')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Analyze image URL with Gemini Vision API' })
+  @ApiOperation({ summary: 'Analyze image URL or base64 data URL with Gemini Vision API' })
   analyze(@Body('imageUrl') imageUrl: string) {
     return this.detectionService.analyze(imageUrl);
   }

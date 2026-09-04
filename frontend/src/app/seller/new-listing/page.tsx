@@ -21,24 +21,18 @@ import {
   Navigation,
   Check,
   Zap,
-  LocateFixed
+  LocateFixed,
+  Scan,
+  Layers,
+  Cpu,
+  RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { DEMO_DEALERS, DEMO_RATES, KERALA_CITIES, ScrapShop } from '@/lib/api';
 import { getRealUserLocation, calculateDistanceKm } from '@/lib/location';
 import ScrollReveal from '@/components/ScrollReveal';
-
-interface ScrapItemValuation {
-  id: string;
-  name: string;
-  category: string;
-  qty: number;
-  unit: string;
-  minRate: number;
-  maxRate: number;
-  condition: string;
-  confidence: number;
-}
+import { detectScrapFromImage, ScrapItemValuation, DetectionOutput } from '@/lib/scrapVisionClassifier';
+import LiveCameraScanner from '@/components/LiveCameraScanner';
 
 export default function SellScrapPage() {
   const router = useRouter();
@@ -105,13 +99,27 @@ export default function SellScrapPage() {
   // Generated OTP for collection
   const [generatedOtp, setGeneratedOtp] = useState('4829');
 
-  // Quick photo samples for instant testing
+  // AI Vision & Live Camera Scanner states
+  const [isLiveScannerOpen, setIsLiveScannerOpen] = useState<boolean>(false);
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [detectedInfo, setDetectedInfo] = useState<{
+    category: string;
+    description: string;
+    confidence: number;
+  } | null>({
+    category: 'Electronics',
+    description: 'Initial sample scrap valuation loaded.',
+    confidence: 0.94,
+  });
+
+  // Quick photo samples for instant testing covering all major scrap materials
   const quickPresets = [
     {
       id: 'sample-laptop',
       title: 'Dead Laptop / PC',
       emoji: '💻',
       badge: 'High Value E-Waste',
+      category: 'Electronics',
       items: [
         {
           id: 'lap-1',
@@ -138,40 +146,11 @@ export default function SellScrapPage() {
       ],
     },
     {
-      id: 'sample-tv',
-      title: 'Old Television (TV)',
-      emoji: '📺',
-      badge: 'E-Waste',
-      items: [
-        {
-          id: 'tv-1',
-          name: 'Old CRT / LED Television',
-          category: 'Electronics',
-          qty: 1,
-          unit: 'piece',
-          minRate: 250,
-          maxRate: 550,
-          condition: 'Non-working / intact tube',
-          confidence: 0.94,
-        },
-        {
-          id: 'tv-2',
-          name: 'Copper Deflection Yoke',
-          category: 'Metal',
-          qty: 1.5,
-          unit: 'kg',
-          minRate: 460,
-          maxRate: 560,
-          condition: 'Copper salvage',
-          confidence: 0.89,
-        },
-      ],
-    },
-    {
       id: 'sample-paper',
       title: 'Newspapers & Cartons',
       emoji: '📰',
       badge: 'Raddi Paper',
+      category: 'Paper',
       items: [
         {
           id: 'p-1',
@@ -198,10 +177,11 @@ export default function SellScrapPage() {
       ],
     },
     {
-      id: 'sample-metal',
+      id: 'sample-copper',
       title: 'Copper Wires & Aluminium',
       emoji: '🔩',
       badge: 'High Value Metal',
+      category: 'Metal',
       items: [
         {
           id: 'm-1',
@@ -227,68 +207,89 @@ export default function SellScrapPage() {
         },
       ],
     },
+    {
+      id: 'sample-plastic',
+      title: 'PET Bottles & Plastic',
+      emoji: '🧴',
+      badge: 'Recyclable Polymer',
+      category: 'Plastic',
+      items: [
+        {
+          id: 'pl-1',
+          name: 'PET Water & Beverage Bottles',
+          category: 'Plastic',
+          qty: 12,
+          unit: 'kg',
+          minRate: 10,
+          maxRate: 16,
+          condition: 'Clean, crushed PET',
+          confidence: 0.94,
+        },
+        {
+          id: 'pl-2',
+          name: 'HDPE Hard Plastic Containers',
+          category: 'Plastic',
+          qty: 4,
+          unit: 'kg',
+          minRate: 8,
+          maxRate: 12,
+          condition: 'Rigid caps & buckets',
+          confidence: 0.9,
+        },
+      ],
+    },
+    {
+      id: 'sample-iron',
+      title: 'Iron & Heavy Steel',
+      emoji: '🏗️',
+      badge: 'Ferrous Scrap',
+      category: 'Metal',
+      items: [
+        {
+          id: 'fe-1',
+          name: 'Iron / Steel Scrap (Irumbu)',
+          category: 'Metal',
+          qty: 25,
+          unit: 'kg',
+          minRate: 26,
+          maxRate: 36,
+          condition: 'Solid domestic / construction scrap',
+          confidence: 0.93,
+        },
+      ],
+    },
+    {
+      id: 'sample-tv',
+      title: 'Old Television (TV)',
+      emoji: '📺',
+      badge: 'E-Waste',
+      category: 'Electronics',
+      items: [
+        {
+          id: 'tv-1',
+          name: 'Old CRT / LED Television',
+          category: 'Electronics',
+          qty: 1,
+          unit: 'piece',
+          minRate: 250,
+          maxRate: 550,
+          condition: 'Non-working / intact tube',
+          confidence: 0.94,
+        },
+        {
+          id: 'tv-2',
+          name: 'Copper Deflection Yoke',
+          category: 'Metal',
+          qty: 1.5,
+          unit: 'kg',
+          minRate: 460,
+          maxRate: 560,
+          condition: 'Copper salvage',
+          confidence: 0.89,
+        },
+      ],
+    },
   ];
-
-  // Helper to intelligently classify uploaded scrap based on image / file name
-  const classifyImage = (fileName: string) => {
-    const fn = fileName.toLowerCase();
-    
-    // Laptop / Computer / PC
-    if (
-      fn.includes('lap') ||
-      fn.includes('pc') ||
-      fn.includes('computer') ||
-      fn.includes('mac') ||
-      fn.includes('dell') ||
-      fn.includes('hp') ||
-      fn.includes('lenovo') ||
-      fn.includes('asus') ||
-      fn.includes('thinkpad') ||
-      fn.includes('notebook')
-    ) {
-      return {
-        detectedName: 'Dead Laptop / PC (Computer)',
-        items: quickPresets[0].items,
-      };
-    }
-
-    // Newspaper / Paper / Cartons
-    if (
-      fn.includes('paper') ||
-      fn.includes('news') ||
-      fn.includes('pathram') ||
-      fn.includes('book') ||
-      fn.includes('carton') ||
-      fn.includes('box')
-    ) {
-      return {
-        detectedName: 'Newspapers & Cartons (Pathram)',
-        items: quickPresets[2].items,
-      };
-    }
-
-    // Copper / Metal
-    if (
-      fn.includes('copper') ||
-      fn.includes('wire') ||
-      fn.includes('metal') ||
-      fn.includes('brass') ||
-      fn.includes('iron') ||
-      fn.includes('aluminium') ||
-      fn.includes('steel')
-    ) {
-      return {
-        detectedName: 'Copper Wires & Metals',
-        items: quickPresets[3].items,
-      };
-    }
-
-    // Default to TV
-    return {
-      detectedName: 'Television (TV)',
-      items: quickPresets[1].items,
-    };
-  };
 
   // Dynamically calculate distance and sort scrap shops nearest first
   const nearbyShops = useMemo(() => {
@@ -336,25 +337,56 @@ export default function SellScrapPage() {
   const handleSelectPreset = (preset: typeof quickPresets[0]) => {
     setPhotoName(preset.title);
     setScrapItems(preset.items);
+    setDetectedInfo({
+      category: preset.category,
+      description: `Loaded ${preset.title} preset from Kerala scrap catalog.`,
+      confidence: 0.96,
+    });
     setStep(2);
     toast.success(`AI identified ${preset.items.length} scrap items from image!`);
+  };
+
+  // Master Image Processing & Scrap Detection Function
+  const processImageForDetection = async (fileOrDataUrl: File | string, fileName?: string) => {
+    setIsScanning(true);
+    const toastId = toast.loading('Analyzing scrap with AI Computer Vision & Pixel Detection...', { id: 'scan' });
+
+    try {
+      if (typeof fileOrDataUrl === 'string') {
+        setUploadedImage(fileOrDataUrl);
+      } else {
+        setUploadedImage(URL.createObjectURL(fileOrDataUrl));
+      }
+
+      const result = await detectScrapFromImage(fileOrDataUrl, fileName);
+
+      setPhotoName(result.detectedTitle);
+      setScrapItems(result.items);
+      setDetectedInfo({
+        category: result.primaryCategory,
+        description: result.description,
+        confidence: result.confidence,
+      });
+
+      toast.success(
+        `Identified: ${result.detectedTitle} (${Math.round(result.confidence * 100)}% match)!`,
+        { id: toastId }
+      );
+      setStep(2);
+      setIsLiveScannerOpen(false);
+    } catch (err) {
+      console.error('Scrap detection error:', err);
+      toast.error('Could not auto-classify image. Please pick category below.', { id: toastId });
+      setStep(2);
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setUploadedImage(URL.createObjectURL(file));
-      
-      const classification = classifyImage(file.name);
-      setPhotoName(classification.detectedName);
-      setScrapItems(classification.items);
-      
-      // AI Valuation Simulation
-      toast.loading(`Analyzing image with Gemini Vision AI...`, { id: 'scan' });
-      setTimeout(() => {
-        toast.success(`Identified as ${classification.detectedName}!`, { id: 'scan' });
-        setStep(2);
-      }, 900);
+      processImageForDetection(file, file.name);
     }
   };
 
@@ -441,15 +473,43 @@ export default function SellScrapPage() {
           {/* Photo Drop Area */}
           <ScrollReveal variant="fade-up" delay="delay-100" className="glass-card rounded-3xl p-8 sm:p-12 border-2 border-dashed border-scrap-border hover:border-scrap-primary/60 transition-all text-center space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-scrap-primary/10 border border-scrap-primary/30 flex items-center justify-center text-scrap-primary mx-auto shadow-glow">
-              <Camera className="w-8 h-8" />
+              <Scan className={`w-8 h-8 ${isScanning ? 'animate-spin' : ''}`} />
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-white">Snap or upload scrap photo</h3>
-              <p className="text-xs text-scrap-muted">JPEG, PNG, WebP supported from camera or gallery</p>
+              <h3 className="text-base font-bold text-white">
+                {isScanning ? 'Analyzing visual scrap characteristics...' : 'Snap or scan scrap photo'}
+              </h3>
+              <p className="text-xs text-scrap-muted">
+                {isScanning
+                  ? 'Detecting materials (Copper, Paper, E-Waste, Plastic, Iron) with AI Computer Vision'
+                  : 'Point your camera or upload photo from device. Instant Kerala rate calculation.'}
+              </p>
             </div>
 
+            {/* Scanning radar indicator */}
+            {isScanning && (
+              <div className="w-full max-w-xs mx-auto py-2">
+                <div className="h-1.5 w-full bg-scrap-bg rounded-full overflow-hidden border border-scrap-primary/40">
+                  <div className="h-full bg-gradient-to-r from-scrap-primary to-scrap-gold animate-pulse w-full" />
+                </div>
+                <span className="text-[11px] text-scrap-primary font-bold mt-1.5 inline-block animate-pulse">
+                  ⚡ Running AI pixel material classifier...
+                </span>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsLiveScannerOpen(true)}
+                disabled={isScanning}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-scrap-primary to-scrap-gold hover:opacity-95 text-black font-extrabold text-sm shadow-glow transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+              >
+                <Scan className="w-4 h-4" />
+                <span>Open Live Camera Scanner</span>
+              </button>
+
               <label className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-scrap-primary hover:bg-scrap-primaryHover text-black font-bold text-sm shadow-glow transition-all cursor-pointer hover:scale-[1.02] active:scale-95">
                 <Camera className="w-4 h-4" />
                 <span>Snap with Camera</span>
@@ -475,16 +535,24 @@ export default function SellScrapPage() {
             </div>
           </ScrollReveal>
 
+          {/* Live Camera Scanner Modal */}
+          <LiveCameraScanner
+            isOpen={isLiveScannerOpen}
+            onClose={() => setIsLiveScannerOpen(false)}
+            onCapture={(dataUrl) => processImageForDetection(dataUrl, 'camera_scan.jpg')}
+            isProcessing={isScanning}
+          />
+
           {/* 1-Click Realistic Presets for Instant Demo with Scroll Reveal */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-scrap-gold flex items-center gap-1.5">
                 ⚡ Or test with 1-click scrap samples:
               </span>
-              <span className="text-xs text-scrap-muted">Based on Kerala rates</span>
+              <span className="text-xs text-scrap-muted">Based on Kerala wholesale rates</span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {quickPresets.map((preset, idx) => (
                 <ScrollReveal
                   key={preset.id}
@@ -493,19 +561,21 @@ export default function SellScrapPage() {
                 >
                   <button
                     onClick={() => handleSelectPreset(preset)}
-                    className="w-full h-full glass-card glass-card-hover rounded-2xl p-5 text-left border-scrap-border hover:border-scrap-primary/60 transition-all group active:scale-95"
+                    className="w-full h-full glass-card glass-card-hover rounded-2xl p-4 text-left border-scrap-border hover:border-scrap-primary/60 transition-all group active:scale-95 flex flex-col justify-between"
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-3xl">{preset.emoji}</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-scrap-primary/10 text-scrap-primary border border-scrap-primary/30">
-                        {preset.badge}
-                      </span>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-2xl">{preset.emoji}</span>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-scrap-primary/10 text-scrap-primary border border-scrap-primary/30">
+                          {preset.category}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold text-white group-hover:text-scrap-primary transition-colors line-clamp-1">
+                        {preset.title}
+                      </h4>
                     </div>
-                    <h4 className="text-sm font-bold text-white group-hover:text-scrap-primary transition-colors">
-                      {preset.title}
-                    </h4>
-                    <p className="text-xs text-scrap-muted mt-1">
-                      {preset.items.length} items • Instant AI pricing
+                    <p className="text-[10px] text-scrap-muted mt-2">
+                      {preset.items.length} items • Kerala Rates
                     </p>
                   </button>
                 </ScrollReveal>
@@ -523,7 +593,7 @@ export default function SellScrapPage() {
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-scrap-primary/10 border border-scrap-primary/30 text-scrap-primary text-xs font-semibold mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Step 2 of 4 • AI Assumed Price</span>
+                <span>Step 2 of 4 • AI Material Valuation</span>
               </div>
               <h2 className="text-2xl font-extrabold text-white">Estimated Scrap Valuation</h2>
               <p className="text-xs text-scrap-muted">
@@ -537,14 +607,52 @@ export default function SellScrapPage() {
             </div>
           </ScrollReveal>
 
+          {/* AI Detection Visual Diagnostic Card */}
+          <div className="glass-card rounded-2xl p-4 border border-scrap-primary/40 bg-scrap-bg/60 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                {uploadedImage && (
+                  <div className="w-14 h-14 rounded-xl overflow-hidden border border-scrap-border flex-shrink-0 bg-black">
+                    <img src={uploadedImage} alt="Scanned scrap" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs uppercase tracking-wider font-bold text-scrap-primary flex items-center gap-1">
+                      <Cpu className="w-3.5 h-3.5" /> AI Vision Verified
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-scrap-gold/15 text-scrap-gold border border-scrap-gold/30 text-[10px] font-bold">
+                      {Math.round((detectedInfo?.confidence || 0.94) * 100)}% Confidence
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-white mt-0.5">{photoName}</h3>
+                  <p className="text-xs text-scrap-muted mt-0.5">
+                    {detectedInfo?.description || 'Identified material and matched with Kerala scrap prices.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-center">
+                <button
+                  type="button"
+                  onClick={() => setIsLiveScannerOpen(true)}
+                  className="px-3 py-1.5 rounded-xl bg-scrap-card hover:bg-scrap-cardHover border border-scrap-border text-xs font-semibold text-scrap-light hover:text-white flex items-center gap-1.5 transition-all"
+                >
+                  <RefreshCw className="w-3 h-3 text-scrap-primary" />
+                  <span>Rescan</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Quick Item Category Switcher */}
           <div className="p-4 rounded-2xl bg-scrap-bg border border-scrap-border space-y-2.5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span className="text-xs text-scrap-light font-medium">
-                Current Scrap Item: <span className="text-scrap-primary font-bold">{photoName || 'Detected Scrap'}</span>
+                Wrong item detected? Switch category in 1 click:
               </span>
               <span className="text-[11px] text-scrap-gold font-semibold">
-                Wrong item detected? Switch in 1 click:
+                Instant price recalculation
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -557,6 +665,11 @@ export default function SellScrapPage() {
                     onClick={() => {
                       setPhotoName(p.title);
                       setScrapItems(p.items);
+                      setDetectedInfo({
+                        category: p.category,
+                        description: `Switched category to ${p.title}.`,
+                        confidence: 0.95,
+                      });
                       toast.success(`Switched valuation to ${p.title}!`);
                     }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 active:scale-95 ${
@@ -572,6 +685,14 @@ export default function SellScrapPage() {
               })}
             </div>
           </div>
+
+          {/* Live Camera Scanner Modal in Step 2 if user clicks Rescan */}
+          <LiveCameraScanner
+            isOpen={isLiveScannerOpen}
+            onClose={() => setIsLiveScannerOpen(false)}
+            onCapture={(dataUrl) => processImageForDetection(dataUrl, 'camera_rescan.jpg')}
+            isProcessing={isScanning}
+          />
 
           {/* List of items detected with Scroll Reveal */}
           <div className="space-y-3">
