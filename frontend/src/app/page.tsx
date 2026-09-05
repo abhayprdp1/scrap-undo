@@ -1,29 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { 
   Camera, 
-  Sparkles, 
   ArrowRight, 
   CheckCircle2, 
-  Banknote, 
-  ShieldCheck, 
-  Leaf, 
-  Cpu, 
-  Boxes, 
-  FileText, 
-  Layers, 
-  MapPin,
-  Store,
-  Clock
+  MapPin
 } from 'lucide-react';
-import { KERALA_CITIES } from '@/lib/api';
 import ScrollReveal from '@/components/ScrollReveal';
+import KeralaMapCard from '@/components/KeralaMapCard';
 
 export default function HomePage() {
-  const [selectedCity, setSelectedCity] = useState<string>('Kochi');
-
   const liveRatesKerala = [
     { item: 'Copper Wire / Pipes', rate: '₹460 - ₹560', unit: 'kg', trend: '+4%' },
     { item: 'Brass (Pithala)', rate: '₹290 - ₹380', unit: 'kg', trend: '+2%' },
@@ -115,67 +103,9 @@ export default function HomePage() {
             </div>
           </ScrollReveal>
 
-          {/* Right Column: Interactive AI Scanning Card Preview */}
+          {/* Right Column: Interactive Kerala Map Card */}
           <ScrollReveal variant="fade-right" delay="delay-200" className="lg:col-span-5 relative">
-            <div className="relative rounded-3xl border border-scrap-border bg-scrap-card/90 p-6 shadow-2xl backdrop-blur-xl">
-              
-              {/* Card Header */}
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-scrap-border">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                  <div className="w-3 h-3 rounded-full bg-scrap-primary" />
-                  <span className="text-xs font-mono text-scrap-muted ml-2">kerala-scrap-scan.json</span>
-                </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-scrap-primary/20 text-scrap-primary border border-scrap-primary/30">
-                  AI DETECTED
-                </span>
-              </div>
-
-              {/* Photo representation with Detection */}
-              <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 via-neutral-900 to-black border border-scrap-border/60 p-6 flex flex-col items-center justify-center min-h-[200px]">
-                <div className="relative w-full max-w-[280px] p-4 rounded-xl border-2 border-dashed border-scrap-primary/80 bg-scrap-primary/5 flex flex-col items-center text-center">
-                  <span className="text-4xl mb-2">📺</span>
-                  <div className="absolute -top-3 left-3 px-2 py-0.5 rounded bg-scrap-primary text-black font-bold text-[10px] tracking-wider uppercase shadow-glow">
-                    Gemini AI • 94% Confidence
-                  </div>
-                  <p className="text-white font-bold text-sm">Old CRT Television</p>
-                  <p className="text-scrap-muted text-xs">Condition: Heavy tube / non-working</p>
-                </div>
-              </div>
-
-              {/* Rate Card Matching Box */}
-              <div className="mt-4 p-4 rounded-2xl bg-scrap-bg border border-scrap-border space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-scrap-muted">Selected District:</span>
-                  <span className="text-white font-medium flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-scrap-primary" /> Kochi / Ernakulam
-                  </span>
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                  <div>
-                    <div className="text-[11px] text-scrap-muted uppercase tracking-wider">Estimated Cash Value</div>
-                    <div className="text-2xl font-black text-scrap-gold">₹350 – ₹550</div>
-                  </div>
-                  <Link
-                    href="/seller/new-listing"
-                    className="px-4 py-2 rounded-xl bg-scrap-primary hover:bg-scrap-primaryHover text-black font-bold text-xs shadow-glow transition-all"
-                  >
-                    Find Nearby Shops
-                  </Link>
-                </div>
-              </div>
-
-              {/* Nearby Scrap Shop Indicator */}
-              <div className="mt-3 p-3 rounded-xl bg-scrap-card border border-scrap-border/80 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <Store className="w-4 h-4 text-scrap-primary" />
-                  <span className="text-white font-semibold">Cochin Green Recyclers</span>
-                </div>
-                <span className="text-scrap-gold font-bold">1.8 km away</span>
-              </div>
-
-            </div>
+            <KeralaMapCard />
           </ScrollReveal>
 
         </div>
