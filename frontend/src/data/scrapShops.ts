@@ -1,8 +1,9 @@
-﻿// Real scrap shop data for Kerala districts
+// Real scrap shop data for Kerala districts
 // Sources: Justdial, Quickerala, IDBF verified listings
 
 export interface ScrapShop {
   id: string;
+  slug: string; // URL-safe identifier, e.g. 'ok-scrap'
   name: string;
   address: string;
   area: string;
@@ -12,16 +13,97 @@ export interface ScrapShop {
   reviews: number;
   mapsQuery: string; // Used to build Google Maps search URL
   mapsDirectionsUrl: string; // Direct Google Maps directions URL
-  photo: 'metal' | 'ewaste' | 'paper'; // maps to public image
+  photo: 'metal' | 'ewaste' | 'paper' | 'bottle'; // maps to public image
   openNow: boolean;
   hours: string;
   districtId: string;
+}
+
+// ─── Poster card data per shop ─────────────────────────────────────────────
+export interface ShopPosterData {
+  tag: string;
+  rateText: string;
+  ratePrice: string;
+  rateUnit: string;
+  homeDelivery: boolean;
+  homeDeliveryLabel?: string;
+  homeDeliverySub?: string;
+  scrapTypeTitle: string;
+  noticeTitle: string;
+  noticeSubtitle: string;
+}
+
+export function getShopPosterData(shop: ScrapShop): ShopPosterData {
+  // Per-shop overrides (real data)
+  if (shop.slug === 'ok-scrap') {
+    return {
+      tag: 'KUPPI',
+      rateText: 'We take bottle at',
+      ratePrice: '₹33',
+      rateUnit: 'per kg',
+      homeDelivery: false,
+      homeDeliveryLabel: 'No',
+      homeDeliverySub: 'Home Delivery',
+      scrapTypeTitle: 'Kuppi (Bottle)',
+      noticeTitle: 'Please bring the scrap to our shop',
+      noticeSubtitle: 'No pickup or home delivery available.',
+    };
+  }
+
+  // Generic fallback based on photo type
+  const photoDefaults: Record<string, Omit<ShopPosterData, 'homeDelivery' | 'homeDeliveryLabel' | 'homeDeliverySub'>> = {
+    bottle: {
+      tag: 'KUPPI',
+      rateText: 'We take bottle at',
+      ratePrice: '₹30',
+      rateUnit: 'per kg',
+      scrapTypeTitle: 'Kuppi (Bottle)',
+      noticeTitle: 'Please bring the scrap to our shop',
+      noticeSubtitle: 'No pickup or home delivery available.',
+    },
+    metal: {
+      tag: 'METAL',
+      rateText: 'We take iron/steel at',
+      ratePrice: '₹28',
+      rateUnit: 'per kg',
+      scrapTypeTitle: 'Iron / Steel',
+      noticeTitle: 'Home pickup available',
+      noticeSubtitle: 'Call us to schedule a pickup at your door.',
+    },
+    ewaste: {
+      tag: 'E-WASTE',
+      rateText: 'We take e-waste at',
+      ratePrice: '₹50',
+      rateUnit: 'per kg',
+      scrapTypeTitle: 'Electronics / E-Waste',
+      noticeTitle: 'Data-safe recycling guaranteed',
+      noticeSubtitle: 'All drives are wiped before processing.',
+    },
+    paper: {
+      tag: 'PAPER',
+      rateText: 'We take newspaper at',
+      ratePrice: '₹15',
+      rateUnit: 'per kg',
+      scrapTypeTitle: 'Paper / Newspaper',
+      noticeTitle: 'Home pickup available',
+      noticeSubtitle: 'Call us to schedule a pickup at your door.',
+    },
+  };
+
+  const defaults = photoDefaults[shop.photo] ?? photoDefaults.metal;
+  return {
+    ...defaults,
+    homeDelivery: shop.photo !== 'bottle',
+    homeDeliveryLabel: shop.photo !== 'bottle' ? 'Yes' : 'No',
+    homeDeliverySub: 'Home Delivery',
+  };
 }
 
 export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
   palakkad: [
     {
       id: 'plk-1',
+      slug: 'indian-trading-corporation',
       districtId: 'palakkad',
       name: 'Indian Trading Corporation',
       address: 'Kanjikode Industrial Area, Palakkad',
@@ -38,6 +120,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'plk-2',
+      slug: 'lakshmi-scrap-shop',
       districtId: 'palakkad',
       name: 'Lakshmi Scrap Shop',
       address: 'Koottupatha, Near Polytechnic College Bus Stop, Palakkad',
@@ -54,6 +137,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'plk-3',
+      slug: 'kn-traders',
       districtId: 'palakkad',
       name: 'KN Traders',
       address: 'Pattambi Road, Palakkad',
@@ -72,6 +156,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
   malappuram: [
     {
       id: 'mlp-1',
+      slug: 'kp-steel-old-scrap',
       districtId: 'malappuram',
       name: 'KP Steel Old Scrap',
       address: '8/136BC, CH Bypass Road, Opp. Bus Owners Pump, Karuvambram, Manjeri',
@@ -88,6 +173,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'mlp-2',
+      slug: 'thoppil-scraps',
       districtId: 'malappuram',
       name: 'Thoppil Scraps',
       address: 'Downhill, Malappuram – 676519',
@@ -104,6 +190,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'mlp-3',
+      slug: 'three-star-scrap-shop',
       districtId: 'malappuram',
       name: 'Three Star Scrap Shop',
       address: 'Tirur Road, Kuttippuram, Malappuram',
@@ -120,6 +207,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'mlp-4',
+      slug: 'a1-enterprise-scrap-shop',
       districtId: 'malappuram',
       name: 'A1 Enterprise Scrap Shop',
       address: 'Garden Valley School Road, Kuttippala, Malappuram – 676501',
@@ -138,6 +226,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
   thrissur: [
     {
       id: 'tsr-1',
+      slug: 'babu-scrap-ewaste-centre',
       districtId: 'thrissur',
       name: 'Babu Scrap – E-Waste Centre',
       address: 'Near Sevanalayam Church, Chiyyaram, Thrissur – 680026',
@@ -154,6 +243,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'tsr-2',
+      slug: 'marvel-steels',
       districtId: 'thrissur',
       name: 'Marvel Steels',
       address: 'Opposite KRS Parcel Service, Chiyyaram, Thrissur',
@@ -170,6 +260,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'tsr-3',
+      slug: 'ecogreen-scrap-trading',
       districtId: 'thrissur',
       name: 'Ecogreen Scrap Trading',
       address: 'Mathilakam, Thrissur',
@@ -186,6 +277,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'tsr-4',
+      slug: 'venkiteshwara-aakri-kada',
       districtId: 'thrissur',
       name: 'Venkiteshwara Aakri Kada',
       address: 'Opp. National Dresses, Near Santhigiri, Kolazhy, Thrissur',
@@ -203,7 +295,25 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
   ],
   kochi: [
     {
+      id: 'kch-0',
+      slug: 'ok-scrap',
+      districtId: 'kochi',
+      name: 'Ok Scrap',
+      address: 'Muvattupuzha, Ernakulam',
+      area: 'Muvattupuzha',
+      phone: '7034286821',
+      types: ['Bottle', 'Glass', 'Kuppi'],
+      rating: 4.5,
+      reviews: 98,
+      mapsQuery: 'Ok Scrap Muvattupuzha Ernakulam Kerala',
+      mapsDirectionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Ok+Scrap+Muvattupuzha+Ernakulam+Kerala',
+      photo: 'bottle',
+      openNow: true,
+      hours: '9:00 AM – 6:00 PM',
+    },
+    {
       id: 'kch-1',
+      slug: 'svk-scrap',
       districtId: 'kochi',
       name: 'SVK Scrap',
       address: 'Vazhakkala, Kakkanad, Ernakulam',
@@ -220,6 +330,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'kch-2',
+      slug: 'lifeline-scraps',
       districtId: 'kochi',
       name: 'Lifeline Scraps',
       address: 'Crash Road, Thrikkakara, Ernakulam',
@@ -236,6 +347,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'kch-3',
+      slug: 'v-sign-scrap-traders',
       districtId: 'kochi',
       name: 'V-Sign Scrap Traders',
       address: 'Near Chakkaraparambu, Vyttila, Ernakulam',
@@ -252,6 +364,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'kch-4',
+      slug: 'mini-and-co-broadway',
       districtId: 'kochi',
       name: 'Mini & Co – Broadway',
       address: 'Broadway, Ernakulam, Kochi – 682031',
@@ -268,6 +381,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
     {
       id: 'kch-5',
+      slug: 'nexia-recycling-corporation',
       districtId: 'kochi',
       name: 'Nexia Recycling Corporation',
       address: 'Edappally, Kochi, Ernakulam',
@@ -289,4 +403,14 @@ export const PHOTO_MAP: Record<string, string> = {
   metal: '/scrap_shop_metal.jpg',
   ewaste: '/scrap_shop_ewaste.jpg',
   paper: '/scrap_shop_paper.jpg',
+  bottle: '/scrap_shop_bottle.jpg',
 };
+
+// Flat list of all shops for easy lookup by slug
+export function getAllShops(): ScrapShop[] {
+  return Object.values(SCRAP_SHOPS).flat();
+}
+
+export function findShopBySlug(slug: string): ScrapShop | undefined {
+  return getAllShops().find((s) => s.slug === slug);
+}

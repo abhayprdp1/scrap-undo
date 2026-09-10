@@ -7,7 +7,7 @@ import {
   MapPin, Store, ArrowRight, X, Phone, Star,
   Navigation, Clock, ChevronLeft, ExternalLink,
   ZoomIn, ZoomOut, RotateCcw, Compass, CheckCircle2,
-  ChevronRight, Search, SlidersHorizontal, Layers
+  ChevronRight, Search, SlidersHorizontal, Layers, FileText
 } from 'lucide-react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
 import { SCRAP_SHOPS, PHOTO_MAP, type ScrapShop } from '@/data/scrapShops';
@@ -192,21 +192,19 @@ function ShopCard({
             <Navigation className="w-3.5 h-3.5" />
             Directions
           </a>
-          <a
-            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.mapsQuery)}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href={`/shop/${shop.slug}`}
             className="flex items-center justify-center py-2 rounded-lg border transition-all hover:brightness-110 text-xs font-bold"
             style={{
               background: districtColor + '15',
               borderColor: districtColor + '40',
               color: districtPinColor,
             }}
-            title="Open in Google Maps"
+            title="View shop poster"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span className="ml-1 hidden sm:inline">GMap</span>
-          </a>
+            <FileText className="w-3.5 h-3.5" />
+            <span className="ml-1">Poster</span>
+          </Link>
         </div>
       </div>
     </div>
