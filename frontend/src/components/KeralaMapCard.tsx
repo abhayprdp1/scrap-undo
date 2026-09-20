@@ -231,19 +231,16 @@ export default function KeralaMapCard() {
 
   const handleZoomIn = () => {
     setPosition((prev) => ({
-      ...prev,
-      zoom: Math.min(Number((prev.zoom * 1.35).toFixed(2)), 4),
+      coordinates: KERALA_CENTER,
+      zoom: Math.min(Number((prev.zoom * 1.25).toFixed(2)), 3),
     }));
   };
 
   const handleZoomOut = () => {
-    setPosition((prev) => {
-      const nextZoom = Math.max(Number((prev.zoom / 1.35).toFixed(2)), 1);
-      return {
-        coordinates: nextZoom === 1 ? KERALA_CENTER : prev.coordinates,
-        zoom: nextZoom,
-      };
-    });
+    setPosition((prev) => ({
+      coordinates: KERALA_CENTER,
+      zoom: Math.max(Number((prev.zoom / 1.25).toFixed(2)), 1),
+    }));
   };
 
   const handleReset = () => {
@@ -254,19 +251,13 @@ export default function KeralaMapCard() {
     setActiveDistrict(null);
   };
 
-  const handleMoveEnd = (newPosition: { coordinates: [number, number]; zoom: number }) => {
-    setPosition(newPosition);
+  const handleMoveEnd = () => {
+    // Keep map locked to Kerala center
   };
 
-  const handleDistrictSelect = (d: District, zoomIn = false) => {
+  const handleDistrictSelect = (d: District) => {
     setActiveDistrict(d);
     setSelectedDirectoryDistrict(d.id);
-    if (zoomIn) {
-      setPosition({
-        coordinates: d.coordinates,
-        zoom: 2.2,
-      });
-    }
   };
 
   const handleViewAllShopsForDistrict = (d: District) => {
@@ -372,7 +363,7 @@ export default function KeralaMapCard() {
               return (
                 <button
                   key={d.id}
-                  onClick={() => handleDistrictSelect(d, true)}
+                  onClick={() => handleDistrictSelect(d)}
                   className="flex-shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all flex items-center gap-1.5"
                   style={
                     isSelected
@@ -490,14 +481,7 @@ export default function KeralaMapCard() {
               </div>
             )}
 
-            {/* Pan/Zoom Drag Hint (Only visible when zoom > 1) */}
-            {position.zoom > 1 && (
-              <div className="absolute bottom-3 right-3 z-30 px-2.5 py-1 rounded-lg bg-black/75 border border-white/10 text-[10px] font-medium text-scrap-muted backdrop-blur-sm pointer-events-none">
-                Drag to explore · Double-click or scroll to zoom
-              </div>
-            )}
-
-            {/* Map SVG rendered with react-simple-maps */}
+            {/* Map SVG rendered with react-simple-maps (Locked in position) */}
             {mounted && (
               <ComposableMap
                 projection="geoMercator"
@@ -510,15 +494,15 @@ export default function KeralaMapCard() {
                 style={{
                   width: '100%',
                   height: '100%',
-                  cursor: position.zoom > 1 ? 'grab' : 'default',
+                  cursor: 'default',
                 }}
               >
                 <ZoomableGroup
-                  center={position.coordinates}
+                  center={KERALA_CENTER}
                   zoom={position.zoom}
                   minZoom={1}
-                  maxZoom={4}
-                  onMoveEnd={handleMoveEnd}
+                  maxZoom={3}
+                  filterZoomEvent={() => false}
                 >
                   <Geographies geography={GEO_URL}>
                     {({ geographies }: { geographies: any[] }) =>
