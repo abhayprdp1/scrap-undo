@@ -201,7 +201,7 @@ export const DEMO_DEALERS: ScrapShop[] = [
     distanceKm: 3.5,
     lat: 11.1246,
     lng: 75.9648,
-    address: 'Parambil Peedika Center, Kondotty, Chellary, Malappuram, Kerala 673638',
+    address: 'Parambil Peedika, Peruvallur, Kondotty, Chellary, Malappuram, Kerala 676317',
     isOpenToday: true,
     timings: '8:00 AM – 7:00 PM',
   },

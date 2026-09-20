@@ -113,6 +113,20 @@ function ShopMapSection({ shop }: { shop: ScrapShop }) {
         <MapPin className="w-3.5 h-3.5" style={{ color: '#1c6b3e' }} />
         <span className="text-xs font-bold text-gray-700">{shop.area}</span>
       </div>
+
+      {/* Floating direct Google Maps link */}
+      <a
+        href={shop.mapsDirectionsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        id="poster-map-direct-link"
+        className="absolute bottom-8 right-4 z-10 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-emerald-300 text-emerald-800 font-bold text-xs hover:bg-emerald-50 transition-all active:scale-95"
+        title="Open exact location in Google Maps"
+      >
+        <Navigation className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" />
+        <span>Open in Google Maps</span>
+        <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600" />
+      </a>
     </div>
   );
 }
@@ -182,12 +196,19 @@ function ShopPosterCard({ shop }: { shop: ScrapShop }) {
             >
               {shop.name}
             </h1>
-            <div className="flex items-center gap-1.5 mt-1.5">
+            <a
+              href={shop.mapsDirectionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 mt-1.5 group cursor-pointer hover:opacity-90 transition-opacity"
+              title="Open location in Google Maps"
+            >
               <MapPin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#1c6b3e' }} />
-              <span className="text-[13px] text-gray-500 font-medium">
+              <span className="text-[13px] text-gray-600 font-medium group-hover:text-emerald-700 underline decoration-gray-300 group-hover:decoration-emerald-500 underline-offset-2 transition-colors">
                 {shop.address || `${shop.area}, Ernakulam`}
               </span>
-            </div>
+              <ArrowUpRight className="w-3 h-3 text-emerald-600 opacity-70 group-hover:opacity-100 flex-shrink-0" />
+            </a>
             {/* Rating + hours row */}
             <div className="flex items-center gap-3 mt-1.5">
               <div className="flex items-center gap-1">
