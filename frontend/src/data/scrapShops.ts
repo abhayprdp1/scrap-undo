@@ -35,6 +35,21 @@ export interface ShopPosterData {
 
 export function getShopPosterData(shop: ScrapShop): ShopPosterData {
   // Per-shop overrides (real data)
+  if (shop.slug === 'sn-scrap' || shop.id === 'mlp-sn' || shop.id === 'shop-mlp-3') {
+    return {
+      tag: 'BEST RATES',
+      rateText: 'Steel ₹27.28 | Copper ₹800 | Fridge ₹750 | Aluminium ₹200 | Bottles ₹20',
+      ratePrice: '₹27.28',
+      rateUnit: 'per kg',
+      homeDelivery: true,
+      homeDeliveryLabel: 'Yes',
+      homeDeliverySub: 'Pickup Available',
+      scrapTypeTitle: 'Steel, Fridge, Copper, Aluminium & Plastics',
+      noticeTitle: 'SN Scrap — Parambil Peedika, Kondotty',
+      noticeSubtitle: 'Best scrap rates in Kondotty & Chellary. Call +91 98476 05132 for pickup.',
+    };
+  }
+
   if (shop.slug === 'ok-scrap') {
     return {
       tag: 'KUPPI',
@@ -154,6 +169,23 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
     },
   ],
   malappuram: [
+    {
+      id: 'mlp-sn',
+      slug: 'sn-scrap',
+      districtId: 'malappuram',
+      name: 'SN Scrap',
+      address: 'Parambil Peedika Center, Kondotty, Chellary, Malappuram – 673638',
+      area: 'Kondotty / Chellary',
+      phone: '+91 98476 05132',
+      types: ['Steel', 'Fridge', 'Copper', 'Aluminium', 'Plastic', 'Cardboard', 'Bottles'],
+      rating: 4.8,
+      reviews: 58,
+      mapsQuery: 'SN Scrap Parambil Peedika Kondotty Chellary Malappuram Kerala',
+      mapsDirectionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=SN+Scrap+Parambil+Peedika+Center+Kondotty+Malappuram+Kerala',
+      photo: 'metal',
+      openNow: true,
+      hours: '8:00 AM – 7:00 PM',
+    },
     {
       id: 'mlp-1',
       slug: 'kp-steel-old-scrap',

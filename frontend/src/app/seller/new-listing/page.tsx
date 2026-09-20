@@ -304,12 +304,12 @@ export default function SellScrapPage() {
       };
     });
 
-    // If user has not detected GPS yet, show shops in the selected district first
-    if (!userCoords) {
-      const cityMatches = list.filter((s) => s.city === selectedCity);
-      if (cityMatches.length > 0) {
-        list = cityMatches;
-      }
+    // Always filter to selected district so user immediately sees shops in their chosen area (e.g. SN Scrap in Malappuram)
+    const cityMatches = list.filter(
+      (s) => s.city.toLowerCase() === selectedCity.toLowerCase()
+    );
+    if (cityMatches.length > 0) {
+      list = cityMatches;
     }
 
     // Sort ascending: closest shop first!
@@ -317,6 +317,13 @@ export default function SellScrapPage() {
 
     return list;
   }, [userCoords, selectedCity]);
+
+  // Sync selected shop when nearbyShops list changes
+  useEffect(() => {
+    if (nearbyShops.length > 0 && !nearbyShops.some((s) => s.id === selectedShopId)) {
+      setSelectedShopId(nearbyShops[0].id);
+    }
+  }, [nearbyShops, selectedShopId]);
 
   // Selected shop object
   const selectedShop = useMemo(() => {
@@ -416,7 +423,7 @@ export default function SellScrapPage() {
       const districtCoords: Record<string, { lat: number; lng: number; address: string }> = {
         Kochi: { lat: 10.0261, lng: 76.3125, address: 'Edappally Toll, Kochi, Kerala' },
         Palakkad: { lat: 10.7867, lng: 76.6548, address: 'Olavakkode, Palakkad, Kerala' },
-        Malappuram: { lat: 11.0722, lng: 76.0740, address: 'Down Hill, Malappuram, Kerala' },
+        Malappuram: { lat: 11.1246, lng: 75.9648, address: 'Parambil Peedika Center, Kondotty, Chellary, Malappuram, Kerala' },
         Thrissur: { lat: 10.5276, lng: 76.2144, address: 'Round West, Thrissur, Kerala' },
       };
       const fb = districtCoords[selectedCity] || districtCoords.Kochi;
@@ -788,27 +795,79 @@ export default function SellScrapPage() {
 
           {/* Real Location Finder Header with Scroll Reveal */}
           <ScrollReveal variant="fade-up" delay="delay-100" className="glass-card rounded-2xl p-5 space-y-4 border-scrap-primary/40 shadow-glow">
+            {/* Quick Touch Location Pills */}
+            <div>
+              <label className="block text-xs font-medium text-scrap-muted mb-2">
+                Touch Location / District:
+              </label>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {(['Kochi', 'Palakkad', 'Malappuram', 'Thrissur'] as const).map((city) => {
+                  const isSelected = selectedCity === city;
+                  return (
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCity(city);
+                        const districtCentroids: Record<string, { lat: number; lng: number; address: string; shopId: string }> = {
+                          Kochi: { lat: 10.0261, lng: 76.3125, address: 'Edappally / Kakkanad, Kochi, Kerala', shopId: 'shop-koc-1' },
+                          Palakkad: { lat: 10.7867, lng: 76.6548, address: 'Olavakkode / TB Road, Palakkad, Kerala', shopId: 'shop-plk-1' },
+                          Malappuram: { lat: 11.1246, lng: 75.9648, address: 'Parambil Peedika Center, Kondotty, Chellary, Malappuram, Kerala 673638', shopId: 'shop-mlp-3' },
+                          Thrissur: { lat: 10.5276, lng: 76.2144, address: 'Round West / Ollur, Thrissur, Kerala', shopId: 'shop-tsr-1' },
+                        };
+                        const fb = districtCentroids[city];
+                        if (fb) {
+                          setUserCoords({ lat: fb.lat, lng: fb.lng });
+                          setUserAddress(fb.address);
+                          setSelectedShopId(fb.shopId);
+                        }
+                      }}
+                      className={`flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-scrap-primary text-black border-scrap-primary shadow-glow scale-[1.02]'
+                          : 'bg-white/5 border-white/10 text-scrap-muted hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{city}</span>
+                      {city === 'Malappuram' && (
+                        <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-blue-500/20 text-blue-300">
+                          SN Scrap
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
               
               <div className="sm:col-span-4">
-                <label className="block text-xs font-medium text-scrap-muted mb-1">District in Kerala</label>
+                <label className="block text-xs font-medium text-scrap-muted mb-1">District Dropdown</label>
                 <select
                   value={selectedCity}
                   onChange={(e) => {
                     const city = e.target.value as any;
                     setSelectedCity(city);
-                    const defaultAddress = 
-                      city === 'Kochi' ? 'Edappally / Kakkanad, Kochi, Kerala' :
-                      city === 'Palakkad' ? 'Olavakkode / TB Road, Palakkad, Kerala' :
-                      city === 'Malappuram' ? 'Down Hill / Kottakkal, Malappuram, Kerala' :
-                      'Round West / Ollur, Thrissur, Kerala';
-                    setUserAddress(defaultAddress);
+                    const districtCentroids: Record<string, { lat: number; lng: number; address: string; shopId: string }> = {
+                      Kochi: { lat: 10.0261, lng: 76.3125, address: 'Edappally / Kakkanad, Kochi, Kerala', shopId: 'shop-koc-1' },
+                      Palakkad: { lat: 10.7867, lng: 76.6548, address: 'Olavakkode / TB Road, Palakkad, Kerala', shopId: 'shop-plk-1' },
+                      Malappuram: { lat: 11.1246, lng: 75.9648, address: 'Parambil Peedika Center, Kondotty, Chellary, Malappuram, Kerala 673638', shopId: 'shop-mlp-3' },
+                      Thrissur: { lat: 10.5276, lng: 76.2144, address: 'Round West / Ollur, Thrissur, Kerala', shopId: 'shop-tsr-1' },
+                    };
+                    const fb = districtCentroids[city];
+                    if (fb) {
+                      setUserCoords({ lat: fb.lat, lng: fb.lng });
+                      setUserAddress(fb.address);
+                      setSelectedShopId(fb.shopId);
+                    }
                   }}
                   className="w-full bg-scrap-bg border border-scrap-border text-white text-sm font-semibold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-scrap-primary"
                 >
                   <option value="Kochi">Kochi (Ernakulam)</option>
                   <option value="Palakkad">Palakkad</option>
-                  <option value="Malappuram">Malappuram</option>
+                  <option value="Malappuram">Malappuram (SN Scrap - Kondotty)</option>
                   <option value="Thrissur">Thrissur</option>
                 </select>
               </div>

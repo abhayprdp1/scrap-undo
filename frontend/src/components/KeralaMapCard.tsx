@@ -40,8 +40,8 @@ const DISTRICTS: District[] = [
     id: 'malappuram',
     geoName: 'Malappuram',
     name: 'Malappuram',
-    shops: 8,
-    areas: ['Down Hill', 'Kottakkal', 'Manjeri Road', 'Perinthalmanna'],
+    shops: 9,
+    areas: ['Kondotty / Chellary', 'Down Hill', 'Kottakkal', 'Manjeri Road'],
     color: '#3b82f6',
     pinColor: '#60a5fa',
     coordinates: [76.07, 11.04],
@@ -342,7 +342,7 @@ export default function KeralaMapCard() {
                 : 'text-scrap-muted hover:text-white'
             }`}
           >
-            <span>🏪 Shops (42)</span>
+            <span>🏪 Shops ({allShopsList.length})</span>
           </button>
         </div>
 
@@ -707,11 +707,39 @@ export default function KeralaMapCard() {
             )}
           </div>
 
+          {/* Active District Shop Preview directly on Map View */}
+          {activeDistrict && activeDistrictShops.length > 0 && (
+            <div className="p-3 rounded-2xl bg-[#0d1622]/90 border border-scrap-border/80 space-y-2.5">
+              <div className="flex items-center justify-between px-0.5">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Store className="w-3.5 h-3.5 text-scrap-primary" />
+                  <span>Verified Shops in {activeDistrict.name} ({activeDistrictShops.length})</span>
+                </span>
+                <button
+                  onClick={() => handleViewAllShopsForDistrict(activeDistrict)}
+                  className="text-[11px] font-bold text-scrap-primary hover:underline flex items-center gap-1"
+                >
+                  View all ({activeDistrictShops.length}) <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[320px] overflow-y-auto scrollbar-hide pr-1">
+                {activeDistrictShops.map((shop) => (
+                  <ShopCard
+                    key={shop.id}
+                    shop={shop}
+                    districtColor={activeDistrict.color}
+                    districtPinColor={activeDistrict.pinColor}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Bottom Card Summary & Quick Stats */}
           <div className="flex items-center justify-between gap-3 pt-1.5 px-1">
             <div className="min-w-0">
               <h4 className="text-xs font-bold text-white leading-tight whitespace-nowrap">
-                42 Verified Scrap Shops
+                {allShopsList.length} Verified Scrap Shops
               </h4>
               <p className="text-[10px] text-scrap-muted leading-snug mt-0.5">
                 Palakkad · Thrissur · Kochi · Malappuram
@@ -747,7 +775,7 @@ export default function KeralaMapCard() {
             </button>
 
             <span className="text-xs font-bold text-white">
-              Showing {filteredShops.length} of 42 shops
+              Showing {filteredShops.length} of {allShopsList.length} shops
             </span>
           </div>
 
@@ -761,7 +789,7 @@ export default function KeralaMapCard() {
                   : 'bg-white/5 border-white/10 text-scrap-muted hover:text-white'
               }`}
             >
-              All Districts (42)
+              All Districts ({allShopsList.length})
             </button>
             {DISTRICTS.map((d) => {
               const isSelected = selectedDirectoryDistrict === d.id;
