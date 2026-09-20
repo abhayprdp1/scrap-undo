@@ -29,15 +29,15 @@ export const DEMO_RATES = [
   { id: '2', category: 'Electronics', subcategory: 'LCD/LED TV', cityZone: 'Kochi', unit: 'piece', minRate: 350, maxRate: 900 },
   { id: '3', category: 'Electronics', subcategory: 'Laptop / Dead PC', cityZone: 'Kochi', unit: 'piece', minRate: 850, maxRate: 3200 },
   { id: '4', category: 'Electronics', subcategory: 'Mobile Phone', cityZone: 'Kochi', unit: 'piece', minRate: 120, maxRate: 600 },
-  { id: '5', category: 'Electronics', subcategory: 'Refrigerator', cityZone: 'Kochi', unit: 'piece', minRate: 600, maxRate: 1800 },
+  { id: '5', category: 'Electronics', subcategory: 'Refrigerator', cityZone: 'Kochi', unit: 'piece', minRate: 750, maxRate: 750 },
   { id: '6', category: 'Electronics', subcategory: 'Washing Machine', cityZone: 'Kochi', unit: 'piece', minRate: 500, maxRate: 1400 },
   { id: '7', category: 'Electronics', subcategory: 'Mixed Cables & Wires', cityZone: 'Kochi', unit: 'kg', minRate: 35, maxRate: 90 },
 
   // Metal
-  { id: '8', category: 'Metal', subcategory: 'Copper Wire / Pipes', cityZone: 'Kochi', unit: 'kg', minRate: 460, maxRate: 560 },
+  { id: '8', category: 'Metal', subcategory: 'Copper Wire / Pipes', cityZone: 'Kochi', unit: 'kg', minRate: 800, maxRate: 800 },
   { id: '9', category: 'Metal', subcategory: 'Brass (Pithala)', cityZone: 'Kochi', unit: 'kg', minRate: 290, maxRate: 380 },
-  { id: '10', category: 'Metal', subcategory: 'Aluminium Vessels / Frames', cityZone: 'Kochi', unit: 'kg', minRate: 85, maxRate: 120 },
-  { id: '11', category: 'Metal', subcategory: 'Iron / Steel (Irumbu)', cityZone: 'Kochi', unit: 'kg', minRate: 26, maxRate: 36 },
+  { id: '10', category: 'Metal', subcategory: 'Aluminium Vessels / Frames', cityZone: 'Kochi', unit: 'kg', minRate: 200, maxRate: 200 },
+  { id: '11', category: 'Metal', subcategory: 'Iron / Steel (Irumbu)', cityZone: 'Kochi', unit: 'kg', minRate: 27, maxRate: 28 },
 
   // Paper & Cardboard
   { id: '12', category: 'Paper', subcategory: 'Newspaper (Pathram)', cityZone: 'Kochi', unit: 'kg', minRate: 13, maxRate: 17 },
@@ -45,8 +45,8 @@ export const DEMO_RATES = [
   { id: '14', category: 'Paper', subcategory: 'Office Books / Files', cityZone: 'Kochi', unit: 'kg', minRate: 10, maxRate: 14 },
 
   // Plastic
-  { id: '15', category: 'Plastic', subcategory: 'PET Water Bottles', cityZone: 'Kochi', unit: 'kg', minRate: 10, maxRate: 16 },
-  { id: '16', category: 'Plastic', subcategory: 'HDPE Hard Plastic', cityZone: 'Kochi', unit: 'kg', minRate: 8, maxRate: 12 },
+  { id: '15', category: 'Plastic', subcategory: 'PET Water Bottles', cityZone: 'Kochi', unit: 'kg', minRate: 20, maxRate: 20 },
+  { id: '16', category: 'Plastic', subcategory: 'HDPE Hard Plastic', cityZone: 'Kochi', unit: 'kg', minRate: 8, maxRate: 8 },
 ];
 
 export interface ScrapShop {
@@ -187,6 +187,23 @@ export const DEMO_DEALERS: ScrapShop[] = [
     address: 'Changuvetti Junction, Kottakkal, Malappuram, Kerala 676503',
     isOpenToday: true,
     timings: '9:00 AM – 8:00 PM',
+  },
+  {
+    id: 'shop-mlp-3',
+    shopName: 'SN Scrap',
+    phone: '+91 98476 05132',
+    city: 'Malappuram',
+    area: 'Kondotty / Chellary',
+    categories: ['Metal', 'Electronics', 'Plastic', 'Paper'],
+    ratingAvg: 4.8,
+    totalRatings: 12,
+    serviceRadiusKm: 15,
+    distanceKm: 3.5,
+    lat: 11.1246,
+    lng: 75.9648,
+    address: 'Parambil Peedika Center, Kondotty, Chellary, Malappuram, Kerala 673638',
+    isOpenToday: true,
+    timings: '8:00 AM – 7:00 PM',
   },
   {
     id: 'shop-tsr-1',

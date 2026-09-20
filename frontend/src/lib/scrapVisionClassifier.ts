@@ -62,6 +62,202 @@ function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
   return [h * 360, s * 100, l * 100];
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Kerala scrap rate catalog used to enrich Gemini AI detections
+// ─────────────────────────────────────────────────────────────────────────────
+const KERALA_RATES: Record<string, { minRate: number; maxRate: number; unit: string; qty: number; condition: string }> = {
+  'newspaper':        { minRate: 13,  maxRate: 17,   unit: 'kg',    qty: 18,  condition: 'Dry stacked bundles' },
+  'cardboard':        { minRate: 9,   maxRate: 13,   unit: 'kg',    qty: 12,  condition: 'Flattened packing boxes' },
+  'books':            { minRate: 10,  maxRate: 14,   unit: 'kg',    qty: 8,   condition: 'Intact pages, no moisture' },
+  'office paper':     { minRate: 11,  maxRate: 15,   unit: 'kg',    qty: 10,  condition: 'Clean office paper' },
+  'copper':           { minRate: 800, maxRate: 800,  unit: 'kg',    qty: 3.5, condition: 'High-purity uninsulated copper' },
+  'brass':            { minRate: 290, maxRate: 380,  unit: 'kg',    qty: 4,   condition: 'Clean domestic scrap' },
+  'iron':             { minRate: 27,  maxRate: 28,   unit: 'kg',    qty: 15,  condition: 'Heavy solid iron scrap' },
+  'steel':            { minRate: 27,  maxRate: 28,   unit: 'kg',    qty: 15,  condition: 'Solid steel scrap' },
+  'aluminum':         { minRate: 200, maxRate: 200,  unit: 'kg',    qty: 3.5, condition: 'Clean household scrap' },
+  'aluminium':        { minRate: 200, maxRate: 200,  unit: 'kg',    qty: 3.5, condition: 'Clean household scrap' },
+  'mixed cables':     { minRate: 35,  maxRate: 90,   unit: 'kg',    qty: 2,   condition: 'Clean strippable wiring' },
+  'crt tv':           { minRate: 250, maxRate: 550,  unit: 'piece', qty: 1,   condition: 'Non-working / intact tube' },
+  'lcd/led tv':       { minRate: 400, maxRate: 900,  unit: 'piece', qty: 1,   condition: 'Screen intact' },
+  'laptop/pc':        { minRate: 850, maxRate: 2400, unit: 'piece', qty: 1,   condition: 'Motherboard + screen salvage intact' },
+  'mobile phone':     { minRate: 200, maxRate: 600,  unit: 'piece', qty: 1,   condition: 'Non-working handset' },
+  'refrigerator':     { minRate: 750, maxRate: 750,  unit: 'piece', qty: 1,   condition: 'Non-working unit' },
+  'ac':               { minRate: 700, maxRate: 1500, unit: 'piece', qty: 1,   condition: 'Non-working unit' },
+  'washing machine':  { minRate: 500, maxRate: 1200, unit: 'piece', qty: 1,   condition: 'Non-working unit' },
+  'pet bottles':      { minRate: 20,  maxRate: 20,   unit: 'kg',    qty: 7,   condition: 'Empty, cleaned plastic' },
+  'hdpe':             { minRate: 8,   maxRate: 8,    unit: 'kg',    qty: 3,   condition: 'Rigid containers / caps' },
+  'mixed plastic':    { minRate: 8,   maxRate: 8,    unit: 'kg',    qty: 5,   condition: 'Mixed clean plastic' },
+  'glass':            { minRate: 4,   maxRate: 8,    unit: 'kg',    qty: 10,  condition: 'Intact glass' },
+  'tyres/rubber':     { minRate: 8,   maxRate: 20,   unit: 'kg',    qty: 5,   condition: 'Old rubber' },
+  'wooden furniture': { minRate: 15,  maxRate: 40,   unit: 'kg',    qty: 10,  condition: 'Dry solid wood' },
+};
+
+const SCRAP_CATEGORIES = {
+  Paper: ['Newspaper', 'Cardboard', 'Books', 'Office Paper'],
+  Metal: ['Iron/Steel', 'Aluminum', 'Copper', 'Brass'],
+  Electronics: ['CRT TV', 'LCD/LED TV', 'Laptop/PC', 'Mobile Phone', 'Refrigerator', 'AC', 'Washing Machine', 'Mixed Cables'],
+  Plastic: ['PET Bottles', 'HDPE', 'Mixed Plastic'],
+  Others: ['Glass', 'Tyres/Rubber', 'Wooden Furniture'],
+};
+
+const GEMINI_PROMPT = `You are a scrap material identification expert for an Indian scrap marketplace in Kerala.
+Analyze this image carefully and identify ALL scrap materials visible.
+
+Valid categories and subcategories:
+${JSON.stringify(SCRAP_CATEGORIES, null, 2)}
+
+Respond ONLY with a valid JSON array in this exact format (no markdown, no explanation):
+[
+  {
+    "category": "Electronics",
+    "subcategory": "CRT TV",
+    "confidence": 0.91,
+    "condition": "non-working"
+  }
+]
+
+Rules:
+- confidence: 0.0 to 1.0 (how confident you are this is the correct identification)
+- condition: "working", "non-working", "clean", "damaged", or "unknown"
+- Only include items from the valid categories/subcategories listed above
+- If you cannot identify any scrap material, return an empty array []
+- Be accurate — identify what you actually SEE in the image`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. Direct Gemini Vision API call from the frontend
+//    Uses NEXT_PUBLIC_GEMINI_API_KEY from .env.local
+// ─────────────────────────────────────────────────────────────────────────────
+async function callGeminiVisionDirect(dataUrl: string): Promise<DetectionOutput | null> {
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey === '') {
+    return null;
+  }
+
+  try {
+    // Extract base64 data and mime type from the data URL
+    const matches = dataUrl.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) return null;
+
+    const mimeType = matches[1];
+    const base64Data = matches[2];
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const payload = {
+      contents: [
+        {
+          parts: [
+            {
+              inline_data: {
+                mime_type: mimeType,
+                data: base64Data,
+              },
+            },
+            {
+              text: GEMINI_PROMPT,
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 512,
+      },
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      console.warn('Gemini Vision API error:', response.status, await response.text());
+      return null;
+    }
+
+    const json = await response.json();
+    const text: string = json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) return null;
+
+    const detections: Array<{ category: string; subcategory: string; confidence: number; condition: string }> =
+      JSON.parse(jsonMatch[0]);
+
+    const valid = detections.filter(
+      (d) =>
+        d.category &&
+        d.subcategory &&
+        typeof d.confidence === 'number' &&
+        SCRAP_CATEGORIES[d.category as keyof typeof SCRAP_CATEGORIES]?.includes(d.subcategory)
+    );
+
+    if (valid.length === 0) return null;
+
+    return buildDetectionOutput(valid);
+  } catch (err) {
+    console.warn('Direct Gemini Vision call failed:', err);
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Build a DetectionOutput from raw Gemini detections using Kerala rate catalog
+// ─────────────────────────────────────────────────────────────────────────────
+function buildDetectionOutput(
+  detections: Array<{ category: string; subcategory: string; confidence: number; condition: string }>
+): DetectionOutput {
+  const primary = detections[0];
+
+  const items: ScrapItemValuation[] = detections.map((d, idx) => {
+    const rateKey = d.subcategory.toLowerCase();
+    const rate = KERALA_RATES[rateKey];
+
+    // Also try matching against DEMO_RATES
+    const demoMatch = DEMO_RATES.find(
+      (r) =>
+        r.category.toLowerCase() === d.category.toLowerCase() &&
+        (r.subcategory.toLowerCase().includes(d.subcategory.toLowerCase()) ||
+          d.subcategory.toLowerCase().includes(r.subcategory.toLowerCase()))
+    );
+
+    const minRate = rate?.minRate ?? demoMatch?.minRate ?? 20;
+    const maxRate = rate?.maxRate ?? demoMatch?.maxRate ?? 60;
+    const unit = rate?.unit ?? demoMatch?.unit ?? (d.category === 'Electronics' ? 'piece' : 'kg');
+    const qty = rate?.qty ?? (d.category === 'Electronics' ? 1 : 8);
+    const condition = d.condition !== 'unknown' ? d.condition : (rate?.condition ?? 'good condition');
+
+    return {
+      id: `ai-${idx + 1}`,
+      name: `${d.subcategory} (${d.category})`,
+      category: d.category,
+      qty,
+      unit,
+      minRate,
+      maxRate,
+      condition,
+      confidence: Math.round(d.confidence * 100) / 100,
+    };
+  });
+
+  const categoryMap: Record<string, DetectionOutput['primaryCategory']> = {
+    Paper: 'Paper',
+    Metal: 'Metal',
+    Electronics: 'Electronics',
+    Plastic: 'Plastic',
+    Others: 'Others',
+  };
+
+  return {
+    detectedTitle: `${primary.subcategory} Scrap`,
+    primaryCategory: categoryMap[primary.category] ?? 'Others',
+    confidence: Math.round(primary.confidence * 100) / 100,
+    description: `Identified by Gemini AI as ${primary.subcategory} (${primary.condition ?? 'condition unknown'}).`,
+    items,
+  };
+}
+
 /**
  * Intelligent Image Pixel Feature Extractor
  * Reads RGB pixel data directly from canvas to identify material types:
@@ -553,11 +749,13 @@ function getFallbackFromHint(fileNameHint?: string): DetectionOutput {
   };
 }
 
+
 /**
  * Unified Detection Master Pipeline:
- * 1. Queries backend Gemini Vision API if reachable
- * 2. Runs browser Computer Vision pixel analyzer
- * 3. Assembles accurate rates from Kerala scrap pricing
+ * 1. TensorFlow.js COCO-SSD + MobileNet (free, no API key, runs in browser)
+ * 2. Gemini Vision API direct from browser (if NEXT_PUBLIC_GEMINI_API_KEY is set)
+ * 3. Backend Gemini Vision API (if backend is running)
+ * 4. Client-side pixel color analyzer (final fallback)
  */
 export async function detectScrapFromImage(fileOrDataUrl: File | string, fileName?: string): Promise<DetectionOutput> {
   let dataUrl = '';
@@ -572,7 +770,26 @@ export async function detectScrapFromImage(fileOrDataUrl: File | string, fileNam
     }
   }
 
-  // 1. Attempt Backend Gemini Vision API call (with 4-second timeout)
+  // 1. TensorFlow.js — free, no API key, runs entirely in the browser
+  if (typeof window !== 'undefined') {
+    try {
+      const { detectWithTensorFlow } = await import('./tfVisionClassifier');
+      const tfResult = await detectWithTensorFlow(dataUrl);
+      if (tfResult) {
+        return tfResult;
+      }
+    } catch (err) {
+      console.info('TF.js detection unavailable, trying next method:', err);
+    }
+  }
+
+  // 2. Direct Gemini Vision API call from the frontend (if key configured)
+  const geminiResult = await callGeminiVisionDirect(dataUrl);
+  if (geminiResult) {
+    return geminiResult;
+  }
+
+  // 3. Attempt Backend Gemini Vision API call (with 4-second timeout)
   try {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
     const response = await axios.post(
@@ -620,6 +837,6 @@ export async function detectScrapFromImage(fileOrDataUrl: File | string, fileNam
     console.info('Backend Gemini Vision unavailable, running client-side computer vision engine:', err);
   }
 
-  // 2. Client-side Computer Vision Engine
+  // 4. Client-side Computer Vision Engine (pixel color analysis)
   return await analyzeImagePixels(dataUrl, effectiveFileName);
 }
