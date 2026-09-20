@@ -6,12 +6,12 @@ import Footer from '@/components/Footer';
 import MobileBottomNav from '@/components/MobileBottomNav';
 
 export const metadata: Metadata = {
-  title: 'scrapUndo — AI-Powered Doorstep Scrap Collection in Kerala',
+  title: 'Infinity Space — AI-Powered Doorstep Scrap Collection in Kerala',
   description: 'Photograph scrap, get instant AI price estimates, locate nearby verified scrap shops in Kochi, Palakkad, Malappuram & Thrissur, and get cash at your doorstep.',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'scrapUndo',
+    title: 'Infinity Space',
   },
 };
 

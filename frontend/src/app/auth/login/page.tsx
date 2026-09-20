@@ -55,7 +55,7 @@ function AuthContent() {
     setTimeout(() => {
       setIsLoading(false);
       signup(signupName, signupPhone, signupCity, signupAddress);
-      toast.success(`Account created! Welcome to scrapUndo Kerala, ${signupName}!`);
+      toast.success(`Account created! Welcome to Infinity Space Kerala, ${signupName}!`);
       router.push('/seller/new-listing');
     }, 500);
   };
@@ -72,7 +72,7 @@ function AuthContent() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-scrap-primaryDark to-scrap-primary flex items-center justify-center text-white mx-auto shadow-glow font-bold">
             <Recycle className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-extrabold text-white">scrapUndo Kerala</h1>
+          <h1 className="text-2xl font-extrabold text-white">Infinity Space Kerala</h1>
           <p className="text-xs text-scrap-muted">
             Doorstep scrap collection in Kochi, Palakkad, Malappuram & Thrissur
           </p>
@@ -245,7 +245,7 @@ function AuthContent() {
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-xs text-scrap-muted">Loading scrapUndo Kerala...</div>}>
+    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-xs text-scrap-muted">Loading Infinity Space Kerala...</div>}>
       <AuthContent />
     </Suspense>
   );

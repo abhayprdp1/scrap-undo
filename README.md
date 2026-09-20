@@ -1,8 +1,8 @@
-# scrapUndo ♻️
+# Infinity Space ♻️
 
 > AI-Powered Doorstep Scrap Collection Platform in Kerala
 
-**scrapUndo** allows households and businesses in Kerala to photograph their scrap (old TVs, newspapers, metals, electronics, plastics), get instant AI price estimates, locate certified scrap collection shops nearest to their real GPS location, and book a doorstep collection slot with cash handover on collection.
+**Infinity Space** allows households and businesses in Kerala to photograph their scrap (old TVs, newspapers, metals, electronics, plastics), get instant AI price estimates, locate certified scrap collection shops nearest to their real GPS location, and book a doorstep collection slot with cash handover on collection.
 
 ---
 

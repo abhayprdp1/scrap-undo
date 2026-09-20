@@ -38,7 +38,7 @@ export default function KeralaRatesPage() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-scrap-primary/10 border border-scrap-primary/30 text-scrap-primary text-xs font-semibold">
             <TrendingUp className="w-3.5 h-3.5" />
-            <span>scrapUndo Kerala Benchmark Index</span>
+            <span>Infinity Space Kerala Benchmark Index</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
             Daily Scrap Market Rates in Kerala

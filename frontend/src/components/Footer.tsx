@@ -14,7 +14,7 @@ export default function Footer() {
               <div className="w-8 h-8 rounded-lg bg-scrap-primary flex items-center justify-center text-black font-bold">
                 <Recycle className="w-5 h-5" />
               </div>
-              <span className="text-white font-bold text-base tracking-tight">scrapUndo Kerala</span>
+              <span className="text-white font-bold text-base tracking-tight">Infinity Space Kerala</span>
             </div>
             <p className="text-xs leading-relaxed text-scrap-muted">
               Kerala&apos;s AI-powered doorstep scrap collection platform. Photograph your scrap, get instant market price estimation, find verified scrap shops nearby, and book doorstep collection.
@@ -79,7 +79,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 pt-6 border-t border-scrap-border/60 flex flex-col sm:flex-row items-center justify-between text-xs text-scrap-muted gap-4">
-          <p>© {new Date().getFullYear()} scrapUndo Kerala. Serving households and offices.</p>
+          <p>© {new Date().getFullYear()} Infinity Space Kerala. Serving households and offices.</p>
           <div className="flex items-center gap-1 text-xs">
             <span>Built for sustainable recycling in Kerala</span>
           </div>

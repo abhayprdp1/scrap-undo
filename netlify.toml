@@ -8,4 +8,4 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  NEXT_PUBLIC_APP_NAME = "scrapUndo"
+  NEXT_PUBLIC_APP_NAME = "Infinity Space"

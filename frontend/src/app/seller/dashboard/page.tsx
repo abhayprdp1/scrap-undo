@@ -62,7 +62,7 @@ export default function MyBookingsDashboard() {
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-scrap-border">
         <div>
-          <span className="text-xs font-semibold text-scrap-primary uppercase tracking-wider">scrapUndo Dashboard</span>
+          <span className="text-xs font-semibold text-scrap-primary uppercase tracking-wider">Infinity Space Dashboard</span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
             My Scrap Bookings
           </h1>
@@ -87,7 +87,7 @@ export default function MyBookingsDashboard() {
             <Leaf className="w-4 h-4 text-emerald-400" />
             <span>Your Cumulative Recycling Impact</span>
           </h2>
-          <span className="text-xs text-scrap-muted">scrapUndo Kerala Initiative</span>
+          <span className="text-xs text-scrap-muted">Infinity Space Kerala Initiative</span>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

@@ -37,7 +37,7 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-lg tracking-tight text-white flex items-center gap-1">
-              scrap<span className="text-scrap-primary">Undo</span>
+              infinity<span className="text-scrap-primary">Space</span>
               <span className="w-2 h-2 rounded-full bg-scrap-primary animate-pulse" />
             </span>
             <span className="text-[10px] text-scrap-muted tracking-wider uppercase font-semibold flex items-center gap-1">

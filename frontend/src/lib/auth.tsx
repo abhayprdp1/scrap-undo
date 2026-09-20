@@ -27,8 +27,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Load persisted session if user logged in previously
-    const savedToken = localStorage.getItem('scrapundo_token');
-    const savedUser = localStorage.getItem('scrapundo_user');
+    const savedToken = localStorage.getItem('infinityspace_token') || localStorage.getItem('scrapundo_token');
+    const savedUser = localStorage.getItem('infinityspace_user') || localStorage.getItem('scrapundo_user');
     if (savedToken && savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
@@ -36,6 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(savedToken);
       } catch (e) {
         console.error('Failed to parse auth state', e);
+        localStorage.removeItem('infinityspace_token');
+        localStorage.removeItem('infinityspace_user');
         localStorage.removeItem('scrapundo_token');
         localStorage.removeItem('scrapundo_user');
       }
@@ -50,9 +52,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       city: (city as any) || user?.city || 'Kochi',
       address: user?.address || 'Kerala, India',
     };
+    const t = 'token-' + Date.now();
     setUser(loggedUser);
-    setToken('token-' + Date.now());
-    localStorage.setItem('scrapundo_token', 'token-' + Date.now());
+    setToken(t);
+    localStorage.setItem('infinityspace_token', t);
+    localStorage.setItem('infinityspace_user', JSON.stringify(loggedUser));
+    localStorage.setItem('scrapundo_token', t);
     localStorage.setItem('scrapundo_user', JSON.stringify(loggedUser));
   };
 
@@ -64,15 +69,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       city,
       address: address || `${city}, Kerala`,
     };
+    const t = 'token-' + Date.now();
     setUser(newUser);
-    setToken('token-' + Date.now());
-    localStorage.setItem('scrapundo_token', 'token-' + Date.now());
+    setToken(t);
+    localStorage.setItem('infinityspace_token', t);
+    localStorage.setItem('infinityspace_user', JSON.stringify(newUser));
+    localStorage.setItem('scrapundo_token', t);
     localStorage.setItem('scrapundo_user', JSON.stringify(newUser));
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
+    localStorage.removeItem('infinityspace_token');
+    localStorage.removeItem('infinityspace_user');
     localStorage.removeItem('scrapundo_token');
     localStorage.removeItem('scrapundo_user');
   };

@@ -70,7 +70,7 @@ function ShopNotFound({ slug }: { slug: string }) {
         className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1c6b3e] text-white font-bold text-sm shadow-lg"
       >
         <ChevronLeft className="w-4 h-4" />
-        Back to ScrapUndo
+        Back to Infinity Space
       </Link>
     </div>
   );
@@ -131,7 +131,7 @@ function ShopPosterCard({ shop }: { shop: ScrapShop }) {
     `🚚 Home Delivery: ${pd.homeDelivery ? 'Yes' : 'No'}\n` +
     `ℹ️ ${pd.noticeTitle} — ${pd.noticeSubtitle}\n` +
     `📞 Contact: ${shop.phone}\n` +
-    `🌐 View poster: https://scrapundo.netlify.app/shop/${shop.slug}`;
+    `🌐 View poster: https://infinityspace.netlify.app/shop/${shop.slug}`;
 
   const handleWhatsApp = async () => {
     if (typeof navigator !== 'undefined' && navigator.share) {
@@ -491,11 +491,11 @@ function ShopPosterCard({ shop }: { shop: ScrapShop }) {
           </a>
         </div>
 
-        {/* ScrapUndo branding */}
+        {/* Infinity Space branding */}
         <div className="pt-3 pb-2 flex items-center justify-center gap-1.5">
           <span className="text-[11px] text-gray-400">Powered by</span>
           <Link href="/" className="text-[12px] font-black" style={{ color: '#1c6b3e' }}>
-            ScrapUndo ♻️
+            Infinity Space ♻️
           </Link>
         </div>
       </div>

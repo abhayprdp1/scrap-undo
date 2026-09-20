@@ -12,7 +12,7 @@ export const api = axios.create({
 // Attach JWT token from localStorage if present
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('scrapundo_token');
+    const token = localStorage.getItem('infinityspace_token') || localStorage.getItem('scrapundo_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
