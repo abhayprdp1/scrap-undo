@@ -866,7 +866,7 @@ export default function SellScrapPage() {
                     const districtCentroids: Record<string, { lat: number; lng: number; address: string; shopId: string }> = {
                       Kochi: { lat: 10.0261, lng: 76.3125, address: 'Edappally / Kakkanad, Kochi, Kerala', shopId: 'shop-koc-1' },
                       Palakkad: { lat: 10.7867, lng: 76.6548, address: 'Olavakkode / TB Road, Palakkad, Kerala', shopId: 'shop-plk-1' },
-                      Malappuram: { lat: 11.1246, lng: 75.9648, address: 'Parambil Peedika, Peruvallur, Kondotty, Chellary, Malappuram, Kerala 676317', shopId: 'shop-mlp-3' },
+                      Malappuram: { lat: 11.1060436, lng: 75.9286526, address: 'Parambil Peedika, Peruvallur, Kondotty, Chellary, Malappuram, Kerala 676317', shopId: 'shop-mlp-3' },
                       Thrissur: { lat: 10.5276, lng: 76.2144, address: 'Round West / Ollur, Thrissur, Kerala', shopId: 'shop-tsr-1' },
                     };
                     const fb = districtCentroids[city];

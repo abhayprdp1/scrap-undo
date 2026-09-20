@@ -180,7 +180,7 @@ export const SCRAP_SHOPS: Record<string, ScrapShop[]> = {
       types: ['Steel', 'Fridge', 'Copper', 'Aluminium', 'Plastic', 'Cardboard', 'Bottles'],
       rating: 4.8,
       reviews: 58,
-      mapsQuery: 'Parambil Peedika, Peruvallur, Malappuram, Kerala 676317',
+      mapsQuery: '11.1060436,75.9286526 (SN Scrap - Parambil Peedika)',
       mapsDirectionsUrl: 'https://maps.app.goo.gl/jooWDF47BB4kPYUw5',
       photo: 'metal',
       openNow: true,
