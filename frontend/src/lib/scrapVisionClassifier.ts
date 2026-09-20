@@ -770,6 +770,16 @@ export async function detectScrapFromImage(fileOrDataUrl: File | string, fileNam
     }
   }
 
+  // Fast image optimization (resize to 640px) so AI model & pixel analyzer run instantly
+  if (typeof window !== 'undefined' && dataUrl.length > 50000) {
+    try {
+      const { resizeImageForAI } = await import('./tfVisionClassifier');
+      dataUrl = await resizeImageForAI(dataUrl, 640);
+    } catch {
+      // continue with original if canvas is unavailable
+    }
+  }
+
   // 1. TensorFlow.js — free, no API key, runs entirely in the browser
   if (typeof window !== 'undefined') {
     try {
@@ -789,14 +799,15 @@ export async function detectScrapFromImage(fileOrDataUrl: File | string, fileNam
     return geminiResult;
   }
 
-  // 3. Attempt Backend Gemini Vision API call (with 4-second timeout)
+  // 3. Attempt Backend Gemini Vision API call (fast 600ms timeout so offline backend never blocks)
   try {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-    const response = await axios.post(
-      `${apiBase}/detection/analyze`,
-      { imageUrl: dataUrl },
-      { timeout: 4200, headers: { 'Content-Type': 'application/json' } }
-    );
+    const apiBase = process.env.NEXT_PUBLIC_API_URL;
+    if (apiBase) {
+      const response = await axios.post(
+        `${apiBase}/detection/analyze`,
+        { imageUrl: dataUrl },
+        { timeout: 600, headers: { 'Content-Type': 'application/json' } }
+      );
 
     if (response.data && Array.isArray(response.data) && response.data.length > 0) {
       const detections = response.data;
@@ -824,13 +835,14 @@ export async function detectScrapFromImage(fileOrDataUrl: File | string, fileNam
         };
       });
 
-      return {
-        detectedTitle: `${primary.subcategory || primary.category} Scrap`,
-        primaryCategory: (primary.category as any) || 'Paper',
-        confidence: Math.round((primary.confidence || 0.93) * 100) / 100,
-        description: `Identified by Gemini Vision AI as ${primary.subcategory} (${primary.condition || 'clean'}).`,
-        items,
-      };
+        return {
+          detectedTitle: `${primary.subcategory || primary.category} Scrap`,
+          primaryCategory: (primary.category as any) || 'Paper',
+          confidence: Math.round((primary.confidence || 0.93) * 100) / 100,
+          description: `Identified by Gemini Vision AI as ${primary.subcategory} (${primary.condition || 'clean'}).`,
+          items,
+        };
+      }
     }
   } catch (err) {
     // Backend offline or timed out — seamlessly continue to client-side Computer Vision

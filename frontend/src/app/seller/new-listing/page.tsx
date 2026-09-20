@@ -325,6 +325,19 @@ export default function SellScrapPage() {
     }
   }, [nearbyShops, selectedShopId]);
 
+  // Pre-load AI models silently in the background
+  // so that when user snaps or uploads a photo, inference runs in milliseconds!
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const timer = setTimeout(() => {
+        import('@/lib/tfVisionClassifier')
+          .then((m) => m.preloadTensorFlowModels?.())
+          .catch(() => {});
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   // Selected shop object
   const selectedShop = useMemo(() => {
     return DEMO_DEALERS.find((s) => s.id === selectedShopId) || nearbyShops[0] || DEMO_DEALERS[0];
