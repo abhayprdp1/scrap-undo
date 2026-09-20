@@ -255,7 +255,7 @@ export default function KeralaMapCard() {
     // Keep map locked to Kerala center
   };
 
-  const handleDistrictSelect = (d: District) => {
+  const handleDistrictSelect = (d: District, _zoomIn?: boolean) => {
     setActiveDistrict(d);
     setSelectedDirectoryDistrict(d.id);
   };
@@ -535,7 +535,7 @@ export default function KeralaMapCard() {
                               },
                             }}
                             onClick={() => {
-                              if (d) handleDistrictSelect(d, false);
+                              if (d) handleDistrictSelect(d);
                             }}
                             onMouseEnter={() => setHoveredGeoName(geoName)}
                             onMouseLeave={() => setHoveredGeoName(null)}
@@ -554,7 +554,7 @@ export default function KeralaMapCard() {
                       <Marker
                         key={d.id}
                         coordinates={d.coordinates}
-                        onClick={() => handleDistrictSelect(d, false)}
+                        onClick={() => handleDistrictSelect(d)}
                         onMouseEnter={() => setHoveredGeoName(d.geoName)}
                         onMouseLeave={() => setHoveredGeoName(null)}
                       >
